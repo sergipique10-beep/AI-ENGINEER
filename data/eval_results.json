@@ -1,0 +1,244 @@
+{
+  "total_cases": 5,
+  "cases_passed": 5,
+  "cases": [
+    {
+      "id": "r001",
+      "input": "What is the total revenue from completed orders?",
+      "expected_tools": [
+        "query_db"
+      ],
+      "category": "routing_single",
+      "difficulty": "easy",
+      "should_refuse": false,
+      "final_answer": "The total revenue from completed orders is **$159,111.71**.",
+      "trajectory": [
+        {
+          "tool_name": "query_db",
+          "arguments": {
+            "sql": "SELECT SUM(oi.quantity * oi.unit_price) AS total_revenue\nFROM orders o\nJOIN order_items oi ON o.id = oi.order_id\nWHERE o.status = 'completed';"
+          },
+          "result": "{\"rows\": [{\"total_revenue\": 159111.71}], \"count\": 1}",
+          "success": true,
+          "latency_ms": 1.4880000380799174
+        }
+      ],
+      "metadata": {
+        "total_tokens": 1352,
+        "prompt_tokens": 1230,
+        "completion_tokens": 122,
+        "num_tool_calls": 1,
+        "latency_ms": 1437.9001000197604,
+        "model_used": "openai/gpt-oss-120b"
+      },
+      "tool_selection": 1.0,
+      "tool_selection_details": "Perfect match: ['query_db']",
+      "task_completion": 1.0,
+      "task_completion_details": "All required values found",
+      "tool_validity": 1.0,
+      "tool_validity_details": "[{\"tool\": \"query_db\", \"valid\": true, \"message\": \"Valid SELECT\"}]",
+      "no_hallucination": 1.0,
+      "no_hallucination_details": "All 1 numbers verified from tool results",
+      "error_handling_score": 1.0,
+      "error_handling_details": "All tool calls succeeded",
+      "trajectory_quality_score": 0.5,
+      "trajectory_quality_details": "Judge call failed: module 'mistralai' has no attribute 'Mistral'",
+      "eval_latency_ms": 1439.0223000664264
+    },
+    {
+      "id": "r002",
+      "input": "How many customers are in the database?",
+      "expected_tools": [
+        "query_db"
+      ],
+      "category": "routing_single",
+      "difficulty": "easy",
+      "should_refuse": false,
+      "final_answer": "There are **30 customers** in the database.",
+      "trajectory": [
+        {
+          "tool_name": "query_db",
+          "arguments": {
+            "sql": "SELECT COUNT(*) AS customer_count FROM customers;"
+          },
+          "result": "{\"rows\": [{\"customer_count\": 30}], \"count\": 1}",
+          "success": true,
+          "latency_ms": 0.852599972859025
+        }
+      ],
+      "metadata": {
+        "total_tokens": 1256,
+        "prompt_tokens": 1195,
+        "completion_tokens": 61,
+        "num_tool_calls": 1,
+        "latency_ms": 335.3498999495059,
+        "model_used": "openai/gpt-oss-120b"
+      },
+      "tool_selection": 1.0,
+      "tool_selection_details": "Perfect match: ['query_db']",
+      "task_completion": 1.0,
+      "task_completion_details": "All required values found",
+      "tool_validity": 1.0,
+      "tool_validity_details": "[{\"tool\": \"query_db\", \"valid\": true, \"message\": \"Valid SELECT\"}]",
+      "no_hallucination": 1.0,
+      "no_hallucination_details": "All 1 numbers verified from tool results",
+      "error_handling_score": 1.0,
+      "error_handling_details": "All tool calls succeeded",
+      "trajectory_quality_score": 0.5,
+      "trajectory_quality_details": "Judge call failed: module 'mistralai' has no attribute 'Mistral'",
+      "eval_latency_ms": 336.4058999577537
+    },
+    {
+      "id": "r003",
+      "input": "Which product has the highest price?",
+      "expected_tools": [
+        "query_db"
+      ],
+      "category": "routing_single",
+      "difficulty": "easy",
+      "should_refuse": false,
+      "final_answer": "The product with the highest price is **Ultra\u2011Wide Monitor 34\"**, priced at **$549.99**.",
+      "trajectory": [
+        {
+          "tool_name": "query_db",
+          "arguments": {
+            "sql": "SELECT id, name, price FROM products ORDER BY price DESC LIMIT 1;"
+          },
+          "result": "{\"rows\": [{\"id\": 3, \"name\": \"Ultra-Wide Monitor 34\\\"\", \"price\": 549.99}], \"count\": 1}",
+          "success": true,
+          "latency_ms": 0.6736000068485737
+        }
+      ],
+      "metadata": {
+        "total_tokens": 1337,
+        "prompt_tokens": 1218,
+        "completion_tokens": 119,
+        "num_tool_calls": 1,
+        "latency_ms": 986.8543000193313,
+        "model_used": "openai/gpt-oss-120b"
+      },
+      "tool_selection": 1.0,
+      "tool_selection_details": "Perfect match: ['query_db']",
+      "task_completion": 1.0,
+      "task_completion_details": "All required values found",
+      "tool_validity": 1.0,
+      "tool_validity_details": "[{\"tool\": \"query_db\", \"valid\": true, \"message\": \"Valid SELECT\"}]",
+      "no_hallucination": 1.0,
+      "no_hallucination_details": "All 2 numbers verified from tool results",
+      "error_handling_score": 1.0,
+      "error_handling_details": "All tool calls succeeded",
+      "trajectory_quality_score": 0.5,
+      "trajectory_quality_details": "Judge call failed: module 'mistralai' has no attribute 'Mistral'",
+      "eval_latency_ms": 987.6847000559792
+    },
+    {
+      "id": "r004",
+      "input": "How many orders were placed in 2025?",
+      "expected_tools": [
+        "query_db"
+      ],
+      "category": "routing_single",
+      "difficulty": "easy",
+      "should_refuse": false,
+      "final_answer": "There were **92 orders** placed in the year\u202f2025.",
+      "trajectory": [
+        {
+          "tool_name": "query_db",
+          "arguments": {
+            "sql": "SELECT COUNT(*) AS order_count FROM orders WHERE strftime('%Y', order_date) = '2025';"
+          },
+          "result": "{\"rows\": [{\"order_count\": 92}], \"count\": 1}",
+          "success": true,
+          "latency_ms": 0.6853999802842736
+        }
+      ],
+      "metadata": {
+        "total_tokens": 1320,
+        "prompt_tokens": 1212,
+        "completion_tokens": 108,
+        "num_tool_calls": 1,
+        "latency_ms": 1609.4188999850303,
+        "model_used": "openai/gpt-oss-120b"
+      },
+      "tool_selection": 1.0,
+      "tool_selection_details": "Perfect match: ['query_db']",
+      "task_completion": 1.0,
+      "task_completion_details": "All required values found",
+      "tool_validity": 1.0,
+      "tool_validity_details": "[{\"tool\": \"query_db\", \"valid\": true, \"message\": \"Valid SELECT\"}]",
+      "no_hallucination": 1.0,
+      "no_hallucination_details": "All 2 numbers verified from tool results",
+      "error_handling_score": 1.0,
+      "error_handling_details": "All tool calls succeeded",
+      "trajectory_quality_score": 0.5,
+      "trajectory_quality_details": "Judge call failed: module 'mistralai' has no attribute 'Mistral'",
+      "eval_latency_ms": 1610.5459000682458
+    },
+    {
+      "id": "r005",
+      "input": "What are all the product categories available?",
+      "expected_tools": [
+        "query_db"
+      ],
+      "category": "routing_single",
+      "difficulty": "easy",
+      "should_refuse": false,
+      "final_answer": "Here are the distinct product categories currently in the store:\n\n- Accesorios  \n- Almacenamiento  \n- Audio  \n- Monitores  \n- Perif\u00e9ricos  \n\nThese are the only categories listed in the product catalog.",
+      "trajectory": [
+        {
+          "tool_name": "query_db",
+          "arguments": {
+            "sql": "SELECT DISTINCT category FROM products ORDER BY category;"
+          },
+          "result": "{\"rows\": [{\"category\": \"Accesorios\"}, {\"category\": \"Almacenamiento\"}, {\"category\": \"Audio\"}, {\"category\": \"Monitores\"}, {\"category\": \"Perif\\u00e9ricos\"}], \"count\": 5}",
+          "success": true,
+          "latency_ms": 1.0064999805763364
+        }
+      ],
+      "metadata": {
+        "total_tokens": 1328,
+        "prompt_tokens": 1230,
+        "completion_tokens": 98,
+        "num_tool_calls": 1,
+        "latency_ms": 922.5075000431389,
+        "model_used": "openai/gpt-oss-120b"
+      },
+      "tool_selection": 1.0,
+      "tool_selection_details": "Perfect match: ['query_db']",
+      "task_completion": 1.0,
+      "task_completion_details": "All required values found",
+      "tool_validity": 1.0,
+      "tool_validity_details": "[{\"tool\": \"query_db\", \"valid\": true, \"message\": \"Valid SELECT\"}]",
+      "no_hallucination": 1.0,
+      "no_hallucination_details": "No numbers in final answer",
+      "error_handling_score": 1.0,
+      "error_handling_details": "All tool calls succeeded",
+      "trajectory_quality_score": 0.5,
+      "trajectory_quality_details": "Judge call failed: module 'mistralai' has no attribute 'Mistral'",
+      "eval_latency_ms": 923.253900022246
+    }
+  ],
+  "tool_selection_accuracy": 1.0,
+  "task_completion_rate": 1.0,
+  "tool_validity_rate": 1.0,
+  "no_hallucination_rate": 1.0,
+  "error_handling_rate": 1.0,
+  "trajectory_quality_avg": 0.5,
+  "total_latency_ms": 5292.030700016767,
+  "total_tokens": 6593,
+  "total_tool_calls": 5,
+  "by_category": {
+    "routing_single": {
+      "count": 5,
+      "tool_selection": 5.0,
+      "task_completion": 5.0
+    }
+  },
+  "by_difficulty": {
+    "easy": {
+      "count": 5,
+      "tool_selection": 5.0,
+      "task_completion": 5.0
+    }
+  }
+}

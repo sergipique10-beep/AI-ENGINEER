@@ -2,10 +2,7 @@ __pycache__/
 *.pyc
 .env
 data/*.db
-data/eval_results.json
 data/eval_results_broken.json
-data/ab_results.json
-data/charts/
 dist/
 *.egg-info/
 .venv/

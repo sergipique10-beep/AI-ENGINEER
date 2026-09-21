@@ -1,0 +1,26 @@
+{
+  "model_a": "openai/gpt-oss-120b",
+  "model_b": "qwen/qwen3.8-27b",
+  "results_a": {
+    "tool_selection_accuracy": 0.9916666666666667,
+    "task_completion_rate": 0.8333333333333334,
+    "no_hallucination_rate": 0.5333333333333333,
+    "error_handling_rate": 1.0,
+    "trajectory_quality_avg": 0.5,
+    "total_latency_ms": 100795.70869985037,
+    "total_tokens": 41555,
+    "cases_passed": 25,
+    "total_cases": 30
+  },
+  "results_b": {
+    "tool_selection_accuracy": 0.9916666666666667,
+    "task_completion_rate": 0.9,
+    "no_hallucination_rate": 0.5,
+    "error_handling_rate": 1.0,
+    "trajectory_quality_avg": 0.5,
+    "total_latency_ms": 454223.153899773,
+    "total_tokens": 62853,
+    "cases_passed": 27,
+    "total_cases": 30
+  }
+}
