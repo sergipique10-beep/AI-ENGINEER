@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import groq
-import mistralai
+from mistralai.client import Mistral
 
 from . import config
 
@@ -30,7 +30,7 @@ class LLMClient:
 
     def __init__(self) -> None:
         self._groq: groq.Groq | None = None
-        self._mistral: mistralai.Mistral | None = None
+        self._mistral: Mistral | None = None
 
     def _get_groq(self) -> groq.Groq:
         if self._groq is None:
@@ -39,11 +39,11 @@ class LLMClient:
             self._groq = groq.Groq(api_key=config.GROQ_API_KEY)
         return self._groq
 
-    def _get_mistral(self) -> mistralai.Mistral:
+    def _get_mistral(self) -> Mistral:
         if self._mistral is None:
             if not config.MISTRAL_API_KEY:
                 raise ValueError("MISTRAL_API_KEY not set")
-            self._mistral = mistralai.Mistral(api_key=config.MISTRAL_API_KEY)
+            self._mistral = Mistral(api_key=config.MISTRAL_API_KEY)
         return self._mistral
 
     def call(
