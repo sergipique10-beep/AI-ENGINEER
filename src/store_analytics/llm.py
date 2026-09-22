@@ -46,6 +46,24 @@ class LLMClient:
             self._mistral = Mistral(api_key=config.MISTRAL_API_KEY)
         return self._mistral
 
+    @staticmethod
+    def _call_with_retry(fn, *, max_attempts: int = 4, base_delay: float = 2.0) -> Any:
+        """Retry with exponential backoff on rate-limit errors (HTTP 429).
+
+        The eval harness fires many agent/judge calls back-to-back against free-tier
+        rate limits (Groq TPM, Mistral RPM), which throttle fast. Without this, a
+        429 either crashes run_agent() mid-loop (leaking the raw error as the
+        "final answer") or silently degrades trajectory_quality to a fake default.
+        """
+        for attempt in range(max_attempts):
+            try:
+                return fn()
+            except Exception as e:
+                is_last = attempt == max_attempts - 1
+                if is_last or "429" not in str(e):
+                    raise
+                time.sleep(base_delay * (2 ** attempt))
+
     def call(
         self,
         messages: list[dict[str, Any]],
@@ -84,7 +102,7 @@ class LLMClient:
             kwargs["tool_choice"] = "auto"
 
         t0 = time.perf_counter()
-        response = client.chat.completions.create(**kwargs)
+        response = self._call_with_retry(lambda: client.chat.completions.create(**kwargs))
         latency_ms = (time.perf_counter() - t0) * 1000
 
         choice = response.choices[0]
@@ -128,7 +146,7 @@ class LLMClient:
             kwargs["tools"] = tools
 
         t0 = time.perf_counter()
-        response = client.chat.complete(**kwargs)
+        response = self._call_with_retry(lambda: client.chat.complete(**kwargs))
         latency_ms = (time.perf_counter() - t0) * 1000
 
         choice = response.choices[0]

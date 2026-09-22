@@ -134,7 +134,7 @@ def evaluate_case(case: dict, *, verbose: bool = False) -> CaseResult:
     cr.tool_validity_details = json.dumps(tv["details"], default=str)
 
     # --- Metric 4: No Hallucination ---
-    nh = no_hallucinated_numbers(result)
+    nh = no_hallucinated_numbers(result, source_text=case["input"])
     cr.no_hallucination = nh["score"]
     cr.no_hallucination_details = nh["details"]
 
