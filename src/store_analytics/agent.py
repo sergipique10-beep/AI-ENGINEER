@@ -68,11 +68,30 @@ def run_agent(query: str, *, verbose: bool = False) -> AgentResult:
     with trace_agent_run(query) as agent_meta:
         for step in range(MAX_TOOL_CALLS):
             # Call LLM
-            response: LLMResponse = llm_client.call(
-                messages=messages,
-                tools=_build_tools_for_llm(),
-                provider="groq",
-            )
+            try:
+                response: LLMResponse = llm_client.call(
+                    messages=messages,
+                    tools=_build_tools_for_llm(),
+                    provider="groq",
+                )
+            except Exception as e:
+                total_latency_ms = (time.perf_counter() - t_start) * 1000
+                metadata = AgentMetadata(
+                    total_tokens=total_prompt_tokens + total_completion_tokens,
+                    prompt_tokens=total_prompt_tokens,
+                    completion_tokens=total_completion_tokens,
+                    num_tool_calls=len(trajectory),
+                    latency_ms=total_latency_ms,
+                    model_used=model_used,
+                    provider_used="groq",
+                )
+                flush_traces()
+                return AgentResult(
+                    final_answer="",
+                    trajectory=trajectory,
+                    metadata=metadata,
+                    error=f"LLM call failed: {e}",
+                )
             model_used = response.model
             total_prompt_tokens += response.prompt_tokens
             total_completion_tokens += response.completion_tokens

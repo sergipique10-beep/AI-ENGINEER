@@ -141,7 +141,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="A/B experiment comparing two models")
     parser.add_argument("--model-a", default="openai/gpt-oss-120b", help="Model A (default: openai/gpt-oss-120b)")
-    parser.add_argument("--model-b", default="qwen/qwen3.8-27b", help="Model B (default: qwen/qwen3.8-27b)")
+    parser.add_argument("--model-b", default="qwen/qwen3-32b", help="Model B (default: qwen/qwen3-32b)")
     parser.add_argument("--max-cases", type=int, default=30, help="Max cases per model (default: 30)")
     parser.add_argument("--output", default="data/ab_results.json", help="Output file")
     args = parser.parse_args()

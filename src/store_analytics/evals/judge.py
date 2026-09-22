@@ -20,7 +20,7 @@ ACCEPTANCE CRITERIA: {acceptance_criteria}
 SCORING RUBRIC:
 1 = Completely wrong: wrong answer, wrong tools, hallucinated data, or refused to answer
 2 = Mostly wrong: partially correct but significant errors or missing key information
-3 = Acceptable:大致 correct answer with minor issues (e.g., extra info, slightly imprecise)
+3 = Acceptable: roughly correct answer with minor issues (e.g., extra info, slightly imprecise)
 4 = Good: correct answer, appropriate tool use, clear presentation
 5 = Excellent: perfect answer, optimal tool selection, efficient trajectory, well-presented
 

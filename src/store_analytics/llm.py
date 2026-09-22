@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import groq
-import mistralai
+from mistralai.client import Mistral
 
 from . import config
 
@@ -28,9 +28,16 @@ class LLMResponse:
 class LLMClient:
     """Thin wrapper that routes calls to Groq or Mistral."""
 
+    # Mistral's free tier enforces a low requests-per-second cap. The eval harness
+    # fires a judge call per case back-to-back (up to ~180 calls for the full
+    # golden dataset) — without spacing them out, nearly every call trips the
+    # limit and reactive retries alone just burn the CI time budget re-hitting it.
+    _MISTRAL_MIN_INTERVAL_S = 1.1
+
     def __init__(self) -> None:
         self._groq: groq.Groq | None = None
-        self._mistral: mistralai.Mistral | None = None
+        self._mistral: Mistral | None = None
+        self._last_mistral_call: float = 0.0
 
     def _get_groq(self) -> groq.Groq:
         if self._groq is None:
@@ -39,12 +46,30 @@ class LLMClient:
             self._groq = groq.Groq(api_key=config.GROQ_API_KEY)
         return self._groq
 
-    def _get_mistral(self) -> mistralai.Mistral:
+    def _get_mistral(self) -> Mistral:
         if self._mistral is None:
             if not config.MISTRAL_API_KEY:
                 raise ValueError("MISTRAL_API_KEY not set")
-            self._mistral = mistralai.Mistral(api_key=config.MISTRAL_API_KEY)
+            self._mistral = Mistral(api_key=config.MISTRAL_API_KEY)
         return self._mistral
+
+    @staticmethod
+    def _call_with_retry(fn, *, max_attempts: int = 4, base_delay: float = 2.0) -> Any:
+        """Retry with exponential backoff on rate-limit errors (HTTP 429).
+
+        The eval harness fires many agent/judge calls back-to-back against free-tier
+        rate limits (Groq TPM, Mistral RPM), which throttle fast. Without this, a
+        429 either crashes run_agent() mid-loop (leaking the raw error as the
+        "final answer") or silently degrades trajectory_quality to a fake default.
+        """
+        for attempt in range(max_attempts):
+            try:
+                return fn()
+            except Exception as e:
+                is_last = attempt == max_attempts - 1
+                if is_last or "429" not in str(e):
+                    raise
+                time.sleep(base_delay * (2 ** attempt))
 
     def call(
         self,
@@ -84,7 +109,7 @@ class LLMClient:
             kwargs["tool_choice"] = "auto"
 
         t0 = time.perf_counter()
-        response = client.chat.completions.create(**kwargs)
+        response = self._call_with_retry(lambda: client.chat.completions.create(**kwargs))
         latency_ms = (time.perf_counter() - t0) * 1000
 
         choice = response.choices[0]
@@ -127,8 +152,17 @@ class LLMClient:
         if tools:
             kwargs["tools"] = tools
 
+        since_last = time.perf_counter() - self._last_mistral_call
+        if since_last < self._MISTRAL_MIN_INTERVAL_S:
+            time.sleep(self._MISTRAL_MIN_INTERVAL_S - since_last)
+
         t0 = time.perf_counter()
-        response = client.chat.complete(**kwargs)
+        try:
+            response = self._call_with_retry(
+                lambda: client.chat.complete(**kwargs), max_attempts=2, base_delay=1.5
+            )
+        finally:
+            self._last_mistral_call = time.perf_counter()
         latency_ms = (time.perf_counter() - t0) * 1000
 
         choice = response.choices[0]
