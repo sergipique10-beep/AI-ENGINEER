@@ -28,9 +28,16 @@ class LLMResponse:
 class LLMClient:
     """Thin wrapper that routes calls to Groq or Mistral."""
 
+    # Mistral's free tier enforces a low requests-per-second cap. The eval harness
+    # fires a judge call per case back-to-back (up to ~180 calls for the full
+    # golden dataset) — without spacing them out, nearly every call trips the
+    # limit and reactive retries alone just burn the CI time budget re-hitting it.
+    _MISTRAL_MIN_INTERVAL_S = 1.1
+
     def __init__(self) -> None:
         self._groq: groq.Groq | None = None
         self._mistral: Mistral | None = None
+        self._last_mistral_call: float = 0.0
 
     def _get_groq(self) -> groq.Groq:
         if self._groq is None:
@@ -145,8 +152,17 @@ class LLMClient:
         if tools:
             kwargs["tools"] = tools
 
+        since_last = time.perf_counter() - self._last_mistral_call
+        if since_last < self._MISTRAL_MIN_INTERVAL_S:
+            time.sleep(self._MISTRAL_MIN_INTERVAL_S - since_last)
+
         t0 = time.perf_counter()
-        response = self._call_with_retry(lambda: client.chat.complete(**kwargs))
+        try:
+            response = self._call_with_retry(
+                lambda: client.chat.complete(**kwargs), max_attempts=2, base_delay=1.5
+            )
+        finally:
+            self._last_mistral_call = time.perf_counter()
         latency_ms = (time.perf_counter() - t0) * 1000
 
         choice = response.choices[0]

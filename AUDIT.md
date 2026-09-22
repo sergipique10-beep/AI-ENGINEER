@@ -26,6 +26,24 @@ Verificación: los fixes se probaron reproduciendo los 92 casos reales descargad
 run de CI (`gh run download`) contra las funciones corregidas, sin gastar más cuota de
 API — antes de confirmarlos con un segundo run real.
 
+## Ronda 3 (2026-09-22) — el retry de la Ronda 2 provocó un timeout
+
+El fix #14 (retry con backoff en 429) arregló `trajectory_quality`, pero introdujo un
+problema nuevo: con ~180 llamadas al juez de Mistral disparadas sin espaciar en el
+harness, casi todas chocaban con el rate limit del free tier, y cada una ahora
+reintentaba hasta 4 veces con backoff creciente (2s+4s+8s=14s en el peor caso) **en
+vez de fallar rápido como antes**. Resultado: el run real superó los 30 minutos de
+`timeout-minutes` del workflow y GitHub canceló el job antes de que `gate.py` llegara
+a ejecutarse.
+
+| # | Problema | Severidad | Archivo(s) | Estado |
+|---|----------|-----------|------------|--------|
+| 18 | Retry puramente reactivo sin espaciar las llamadas de antemano — con un límite de tasa estricto (Mistral free tier), reintentar tras cada 429 sin más simplemente vuelve a chocar con el límite, multiplicando el tiempo total en vez de evitarlo. | **Alta** | `llm.py` | ✅ Corregido — `_call_mistral` ahora espera un mínimo de 1.1s desde la última llamada *antes* de disparar la siguiente (`_MISTRAL_MIN_INTERVAL_S`), y el retry reactivo se redujo a un único reintento de seguridad (2 intentos, 1.5s) en vez de 4 intentos con backoff exponencial. |
+
+Lección: un retry sin throttling proactivo puede convertir "todas las llamadas fallan
+rápido" en "todas las llamadas fallan lento" — peor para un pipeline con presupuesto
+de tiempo fijo (CI) aunque parezca más resiliente en aislamiento.
+
 ## Hallazgos y estado
 
 | # | Problema | Severidad | Archivo(s) | Estado |
